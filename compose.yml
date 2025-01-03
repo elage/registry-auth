@@ -1,0 +1,34 @@
+# This expects traefik to be set up in a separate docker-compose file.
+# It assumes that the traefik network is called traefik and a TLS entrypoint called `websecure`.
+
+services:
+  registry:
+    image: registry:2.8
+    container_name: registry
+    volumes:
+      - ./registry:/var/lib/registry
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.registry-https.rule=Host(`$HOST`)"
+      - "traefik.http.routers.registry-https.entrypoints=websecure"
+      - "traefik.http.routers.registry-https.tls=true"
+      - "traefik.http.routers.registry-https.tls.certresolver=dnsimple"
+      - "traefik.http.routers.registry-https.middlewares=forward-auth"
+      - "traefik.http.middlewares.forward-auth.forwardauth.address=http://auth:8080"
+    restart: unless-stopped
+
+  auth:
+    build: ./auth
+    container_name: auth
+    networks:
+      - traefik
+    volumes:
+      - ./users.htpasswd:/conf/users.htpasswd
+      - ./model.conf:/conf/model.conf
+      - ./policy.csv:/conf/policy.csv
+
+networks:
+  traefik:
+    external: true
