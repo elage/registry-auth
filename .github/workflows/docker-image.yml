@@ -19,7 +19,8 @@ jobs:
     - name: Build and publish a Docker image for ${{ github.repository }}
       uses: macbre/push-to-ghcr@master
       with:
-        dockerfile: ./auth/Dockerfile
+        dockerfile: Dockerfile
+        context: auth
         image_name: ${{ github.repository }}  # it will be lowercased internally
         github_token: ${{ secrets.GITHUB_TOKEN }}
         # optionally push to the Docker Hub (docker.io)
